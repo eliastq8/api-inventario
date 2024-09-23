@@ -1,90 +1,84 @@
 const express = require('express');
 const morgan = require('morgan');
-const cors = require('cors'); // Importa el paquete cors
+const cors = require('cors');
 const app = express();
+const { Inventory } = require('./models'); // Importa el modelo Sequelize Inventory
 const port = 3000;
 
 app.use(express.json());
 app.use(morgan('dev'));
-app.use(cors()); // Usa el middleware cors
+app.use(cors());
 
-const data = [
-    {
-        id: 1,
-        nombre: "cosa1",
-        cantidad: 2,
-        descripcion: "es una descripcion"
-    },
-    {
-        id: 2,
-        nombre: "cosa2",
-        cantidad: 6,
-        descripcion: "es una descripcion"
-    },
-];
-
-app.get("/", (req, res) => {
-    res.send("hola mundo");
+// Ruta para obtener todos los productos desde la base de datos
+app.get("/data", async (req, res) => {
+    try {
+        const products = await Inventory.findAll(); // Obtiene todos los productos
+        res.status(200).json(products);
+    } catch (error) {
+        res.status(500).json({ message: 'Error al obtener los productos', error });
+    }
 });
 
-app.get("/data/all", (req, res) => {
-    res.status(200).json(data);
-});
-
-app.get("/data", (req, res) => {
-    const query_id = req.query.id;
-    const query_nombre = req.query.nombre;
-    if (query_id && query_nombre) {
-        const filtro = data.filter(item => item.id == query_id && item.nombre == query_nombre);
-        if (filtro.length > 0) {
-            res.status(200).json(filtro);
+// Ruta para obtener un producto por ID desde la base de datos
+app.get("/data/:id", async (req, res) => {
+    try {
+        const product = await Inventory.findByPk(req.params.id); // Busca por ID
+        if (product) {
+            res.status(200).json(product);
         } else {
-            res.status(404).json({ mensaje: "no encontrado" });
+            res.status(404).json({ message: "Producto no encontrado" });
         }
-    } else {
-        res.status(302).redirect("/data/all");
+    } catch (error) {
+        res.status(500).json({ message: 'Error al obtener el producto', error });
     }
 });
 
-app.get("/data/:id", (req, res) => {
-    const id_user = req.params.id;
-    const encontrado = data.find(item => item.id == id_user);
-    if (encontrado) {
-        res.status(200).json(encontrado);
-    } else {
-        res.status(404).json({ mensaje: "no encontrado" });
+// Ruta para agregar un nuevo producto
+app.post("/data", async (req, res) => {
+    try {
+        const { nombre, cantidad, descripcion } = req.body;
+        const newProduct = await Inventory.create({ 
+            nombre: nombre, 
+            cantidad: cantidad, 
+            descripcion: descripcion 
+        });
+        res.status(201).json(newProduct);
+    } catch (error) {
+        res.status(500).json({ message: 'Error al agregar el producto', error });
     }
 });
 
-app.post("/data", (req, res) => {
-    const user_body = req.body;
-    data.push(user_body);
-    res.status(201).json(data);
-});
-
-app.put("/data/:id", (req, res) => {
-    const user_body = req.body;
-    const param = req.params.id;
-    const encontrado = data.findIndex(item => item.id == param);
-    if (encontrado != -1) {
-        data[encontrado] = user_body;
-        res.status(201).json(data);
-    } else {
-        res.status(404).json({ message: "No encontrado" });
+// Ruta para actualizar un producto
+app.put("/data/:id", async (req, res) => {
+    try {
+        const { nombre, cantidad, descripcion } = req.body;
+        const product = await Inventory.findByPk(req.params.id);
+        if (product) {
+            await product.update({ name: nombre, quantity: cantidad, description: descripcion });
+            res.status(200).json(product);
+        } else {
+            res.status(404).json({ message: "Producto no encontrado" });
+        }
+    } catch (error) {
+        res.status(500).json({ message: 'Error al actualizar el producto', error });
     }
 });
 
-app.delete("/data/:id", (req, res) => {
-    const param = parseInt(req.params.id);
-    const index = data.findIndex(item => item.id === param);
-    if (index !== -1) {
-        const [deleted] = data.splice(index, 1);
-        res.status(200).json(deleted);
-    } else {
-        res.status(404).json({ message: "No encontrado" });
+// Ruta para eliminar un producto
+app.delete("/data/:id", async (req, res) => {
+    try {
+        const product = await Inventory.findByPk(req.params.id);
+        if (product) {
+            await product.destroy();
+            res.status(200).json({ message: "Producto eliminado" });
+        } else {
+            res.status(404).json({ message: "Producto no encontrado" });
+        }
+    } catch (error) {
+        res.status(500).json({ message: 'Error al eliminar el producto', error });
     }
 });
 
 app.listen(port, () => {
-    console.log("Servicio escuchando el puerto", port);
+    console.log(`Servicio escuchando en el puerto ${port}`);
 });
