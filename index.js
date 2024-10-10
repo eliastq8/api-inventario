@@ -54,7 +54,7 @@ app.put("/data/:id", async (req, res) => {
         const { nombre, cantidad, descripcion } = req.body;
         const product = await Inventory.findByPk(req.params.id);
         if (product) {
-            await product.update({ name: nombre, quantity: cantidad, description: descripcion });
+            await product.update({nombre, cantidad, descripcion});
             res.status(200).json(product);
         } else {
             res.status(404).json({ message: "Producto no encontrado" });
