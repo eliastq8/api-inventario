@@ -32,6 +32,14 @@ admin.initializeApp({
 const productosRouter = require('./api/productos')
 app.use('/productos', productosRouter)
 
+//ventas
+const ventasRouter = require('./api/ventas')
+app.use('/ventas', ventasRouter)
+
+//ventas
+const UsuariosRouter = require('./api/Usuarios')
+app.use('/usuarios', UsuariosRouter)
+
 app.get('/', (req, res) => {
   res.send('Hola mundo')
 })
