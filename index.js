@@ -1,90 +1,49 @@
-const express = require('express');
+const express = require('express')
+const admin = require('firebase-admin')
 const morgan = require('morgan');
-const cors = require('cors'); // Importa el paquete cors
-const app = express();
-const port = 3000;
+const cors = require('cors')
+const port = process.env.PORT || 3000
+const app = express()
 
-app.use(express.json());
+require('dotenv').config()
+app.use(cors())
 app.use(morgan('dev'));
-app.use(cors()); // Usa el middleware cors
+app.use(express.json())
 
-const data = [
-    {
-        id: 1,
-        nombre: "cosa1",
-        cantidad: 2,
-        descripcion: "es una descripcion"
-    },
-    {
-        id: 2,
-        nombre: "cosa2",
-        cantidad: 6,
-        descripcion: "es una descripcion"
-    },
-];
 
-app.get("/", (req, res) => {
-    res.send("hola mundo");
+const serviceAccount = {
+  type: process.env.TYPE,
+  project_id: process.env.PROJECT_ID,
+  client_email: process.env.CLIENT_EMAIL,
+  client_id: process.env.CLIENT_ID,
+  private_key_id: process.env.PRIVATE_KEY_ID,
+  private_key: process.env.PRIVATE_KEY.replace(/\\n/g, '\n'), // Asegúrate de que el formato sea correcto
+  auth_uri: process.env.AUTH_URI,
+  token_uri: process.env.TOKEN_URI,
+  auth_provider_x509_cert_url: process.env.AUTH_PROVIDER_X509_CERT_URL,
+  client_x509_cert_url: process.env.CLIENT_X509_CERT_URL,
+  universe_domain: process.env.UNIVERSE_DOMAIN,
+};
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
 });
 
-app.get("/data/all", (req, res) => {
-    res.status(200).json(data);
-});
+//productos
+const productosRouter = require('./api/productos')
+app.use('/productos', productosRouter)
 
-app.get("/data", (req, res) => {
-    const query_id = req.query.id;
-    const query_nombre = req.query.nombre;
-    if (query_id && query_nombre) {
-        const filtro = data.filter(item => item.id == query_id && item.nombre == query_nombre);
-        if (filtro.length > 0) {
-            res.status(200).json(filtro);
-        } else {
-            res.status(404).json({ mensaje: "no encontrado" });
-        }
-    } else {
-        res.status(302).redirect("/data/all");
-    }
-});
+//ventas
+const ventasRouter = require('./api/ventas')
+app.use('/ventas', ventasRouter)
 
-app.get("/data/:id", (req, res) => {
-    const id_user = req.params.id;
-    const encontrado = data.find(item => item.id == id_user);
-    if (encontrado) {
-        res.status(200).json(encontrado);
-    } else {
-        res.status(404).json({ mensaje: "no encontrado" });
-    }
-});
+//ventas
+const UsuariosRouter = require('./api/Usuarios')
+app.use('/usuarios', UsuariosRouter)
 
-app.post("/data", (req, res) => {
-    const user_body = req.body;
-    data.push(user_body);
-    res.status(201).json(data);
-});
-
-app.put("/data/:id", (req, res) => {
-    const user_body = req.body;
-    const param = req.params.id;
-    const encontrado = data.findIndex(item => item.id == param);
-    if (encontrado != -1) {
-        data[encontrado] = user_body;
-        res.status(201).json(data);
-    } else {
-        res.status(404).json({ message: "No encontrado" });
-    }
-});
-
-app.delete("/data/:id", (req, res) => {
-    const param = parseInt(req.params.id);
-    const index = data.findIndex(item => item.id === param);
-    if (index !== -1) {
-        const [deleted] = data.splice(index, 1);
-        res.status(200).json(deleted);
-    } else {
-        res.status(404).json({ message: "No encontrado" });
-    }
-});
+app.get('/', (req, res) => {
+  res.send('Hola mundo')
+})
 
 app.listen(port, () => {
-    console.log("Servicio escuchando el puerto", port);
-});
+  console.log(`Api rest corriendo en el puerto ${port}`)
+})
