@@ -3,16 +3,26 @@
  * @apiName GetVentas
  * @apiGroup Ventas
  *
- * @apiExample {curl} Ejemplo de uso:
+ * @apiDescription Obtiene todas las ventas registradas. Si se especifican los parámetros `fechaInicio` y `fechaFin`, se devolverán únicamente las ventas realizadas dentro del rango de fechas proporcionado.
+ *
+ * @apiQuery {String} [fechaInicio] Fecha de inicio del rango en formato ISO (ejemplo: "2024-10-15").
+ * @apiQuery {String} [fechaFin] Fecha de fin del rango en formato ISO (ejemplo: "2024-11-24").
+ *
+ * @apiExample {curl} Ejemplo sin filtro:
  *     curl -i http://localhost:3000/ventas
+ *
+ * @apiExample {curl} Ejemplo con filtro por fechas:
+ *     curl -i "http://localhost:3000/ventas?fechaInicio=2024-10-15&fechaFin=2024-11-24"
+ *
  * @apiSuccess {Object[]} data Lista de ventas.
  * @apiSuccess {String} data.id ID de la venta.
  * @apiSuccess {String} data.idUsuario ID del usuario que realizó la venta.
  * @apiSuccess {String} data.idProducto ID del producto vendido.
  * @apiSuccess {Number} data.cantidad Cantidad de productos vendidos.
- * @apiSuccess {Timestamp} data.fecha Fecha de la venta.
- * @apiSuccess {Number} total Total de ventas.
- * @apiSuccessExample {json} Ejemplo de respuesta
+ * @apiSuccess {Timestamp} data.fecha Fecha de la venta en formato `Timestamp`.
+ * @apiSuccess {Number} total Total de ventas devueltas.
+ *
+ * @apiSuccessExample {json} Ejemplo de respuesta:
  *     HTTP/1.1 200 OK
  *     {
  *       "data": [
@@ -22,12 +32,25 @@
  *           "idProducto": "producto1",
  *           "cantidad": 3,
  *           "fecha": "2024-11-23T12:00:00.000Z"
+ *         },
+ *         {
+ *           "id": "venta2",
+ *           "idUsuario": "usuario2",
+ *           "idProducto": "producto2",
+ *           "cantidad": 5,
+ *           "fecha": "2024-11-20T14:30:00.000Z"
  *         }
  *       ],
- *       "total": 1
+ *       "total": 2
  *     }
  *
  * @apiError (Error 500) InternalServerError Error interno del servidor.
+ *
+ * @apiErrorExample {json} Ejemplo de error:
+ *     HTTP/1.1 500 Internal Server Error
+ *     {
+ *       "error": "Error al obtener las ventas: <detalle del error>"
+ *     }
  */
 
 /**

@@ -4,9 +4,19 @@ const router = express.Router();
 const db = admin.firestore();
 
 // Ruta para obtener todas las ventas
+// Ruta para obtener todas las ventas con filtros opcionales
 router.get('/', async (req, res) => {
     try {
-        const snapshot = await db.collection('ventas').get();
+        const { fechaInicio, fechaFin } = req.query;
+        let consulta = db.collection('ventas');
+
+        if (fechaInicio && fechaFin) {
+            const inicioTimestamp = admin.firestore.Timestamp.fromDate(new Date(fechaInicio));
+            const finTimestamp = admin.firestore.Timestamp.fromDate(new Date(fechaFin));
+            consulta = consulta.where('fecha', '>=', inicioTimestamp).where('fecha', '<=', finTimestamp);
+        }
+
+        const snapshot = await consulta.get();
         const ventas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         res.status(200).json({ data: ventas, total: ventas.length });
     } catch (error) {
