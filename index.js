@@ -40,9 +40,11 @@ app.use('/ventas', ventasRouter)
 const UsuariosRouter = require('./api/Usuarios')
 app.use('/usuarios', UsuariosRouter)
 
+app.use(express.static('doc'));
+//add doc
 app.get('/', (req, res) => {
-  res.send('Hola mundo')
-})
+  res.sendFile(__dirname +'/doc/index.html');
+});
 
 app.listen(port, () => {
   console.log(`Api rest corriendo en el puerto ${port}`)
